@@ -1,10 +1,11 @@
+import copy
 
 PUZZLE_LIMIT = [3,3]
 
 
 class Node(object):
     def __init__(self, pN = None, t = [], oper = None):
-        self.pai = None
+        self.pai = pN
         self.table = t
         self.oper = oper
 
@@ -24,47 +25,47 @@ class Node(object):
 
 
     def move_up(self, from_x, from_y):
-        if self.table[from_x,from_y] != 0 and from_y > 0 and self.table[from_x,from_y - 1] == 0:
-            n_table = self.table.copy()
-            n_table[from_x,from_y - 1] = n_table[frozensetm_x,from_y]
-            n_table[from_x,from_y] = 0
+        if self.table[from_y][from_x] != 0 and from_y > 0 and self.table[from_y - 1][from_x] == 0:
+            n_table = copy.deepcopy(self.table)
+            n_table[from_y - 1][from_x] = n_table[from_y][from_x]
+            n_table[from_y][from_x] = 0
 
-            return Node(self,n_table,'UP-' + str(from_x) + ',' + str(from_y))
+            return Node( pN=self, t=n_table, oper='UP-' + str(from_x) + ',' + str(from_y))
         else:
             return None
 
     def move_down(self, from_x, from_y):
-        if self.table[from_x,from_y] != 0 and from_y < PUZZLE_LIMIT[1] - 1 and self.table[from_x,from_y + 1] == 0:
-            n_table = self.table.copy()
-            n_table[from_x,from_y + 1] = n_table[from_x,from_y]
-            n_table[from_x,from_y] = 0
+        if self.table[from_y][from_x] != 0 and from_y < PUZZLE_LIMIT[1] - 1 and self.table[from_y + 1][from_x] == 0:
+            n_table = copy.deepcopy(self.table)
+            n_table[from_y + 1][from_x] = n_table[from_y][from_x]
+            n_table[from_y][from_x] = 0
 
-            return Node(self,n_table,'DOWN-' + str(from_x) + ',' + str(from_y))
+            return Node( pN=self, t=n_table, oper='DOWN-' + str(from_x) + ',' + str(from_y))
         else:
             return None
 
     def move_left(self, from_x, from_y):
-        if self.table[from_x,from_y] != 0 and from_x > 0 and self.table[from_x - 1,from_y] == 0:
-            n_table = self.table.copy()
-            n_table[from_x - 1,from_y] = n_table[from_x,from_y]
-            n_table[from_x,from_y] = 0
+        if self.table[from_y][from_x] != 0 and from_x > 0 and self.table[from_y][from_x - 1] == 0:
+            n_table = copy.deepcopy(self.table)
+            n_table[from_y][from_x - 1] = n_table[from_y][from_x]
+            n_table[from_y][from_x] = 0
 
-            return Node(self,n_table,'LEFT-' + str(from_x) + ',' + str(from_y))
+            return Node( pN=self, t=n_table, oper='LEFT-' + str(from_x) + ',' + str(from_y))
         else:
             return None
 
     def move_right(self, from_x, from_y):
-        if self.table[from_x,from_y] != 0 and from_x < PUZZLE_LIMIT[0] - 1 and self.table[from_x + 1,from_y] == 0:
-            n_table = self.table.copy()
-            n_table[from_x + 1,from_y] = n_table[from_x,from_y]
-            n_table[from_x,from_y] = 0
+        if self.table[from_y][from_x] != 0 and from_x < PUZZLE_LIMIT[0] - 1 and self.table[from_y][from_x + 1] == 0:
+            n_table = copy.deepcopy(self.table)
+            n_table[from_y][from_x + 1] = n_table[from_y][from_x]
+            n_table[from_y][from_x] = 0
 
-            return Node(self,n_table,'RIGHT-' + str(from_x) + ',' + str(from_y))
+            return Node( pN=self, t=n_table, oper='RIGHT-' + str(from_x) + ',' + str(from_y))
         else:
             return None    
 
     def is_goal(self):
-        for Y in range(PUZZLE_LIMIT[1]):
+        for y in range(PUZZLE_LIMIT[1]):
             for x in range(PUZZLE_LIMIT[0]):
                 if self.table[y][x] != x + (y*PUZZLE_LIMIT[1]):
                     return False
@@ -82,22 +83,33 @@ class Node(object):
         return True
 
 
-    def all_moves(self, from_x, from_y):
-        nodes = []
-
-        x = self.move_up(from_x,from_y)
+    def all_moves(self):
+        nodes = []    
+        zero = None
+        
+        for y in range(PUZZLE_LIMIT[1]):
+            if zero is None:
+                for x in range(PUZZLE_LIMIT[0]):
+                    if self.table[y][x] == 0:
+                        zero = [x,y]
+                        break
+            else:
+                break
+            
+            
+        x = self.move_up(zero[0],zero[1]+1)
         if x != None and not self.repeated(x):
             nodes += [x]
 
-        x = self.move_down(from_x,from_y)
+        x = self.move_down(zero[0],zero[1]-1)
         if x != None and not self.repeated(x):
             nodes += [x]
 
-        x = self.move_left(from_x,from_y)
+        x = self.move_left(zero[0]+1,zero[1])
         if x != None and not self.repeated(x):
             nodes += [x]
 
-        x = self.move_right(from_x,from_y)
+        x = self.move_right(zero[0]-1,zero[1])
         if x != None and not self.repeated(x):
             nodes += [x]
 
@@ -118,9 +130,9 @@ class Node(object):
 
 
 
-x = Node()
+x = Node(t=[[0,1,2],[3,4,5],[6,7,8]])
 x.print_table()
-
+a = x.all_moves()
 
 
 
